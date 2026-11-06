@@ -12,6 +12,8 @@ CodeCraftHub is a beginner-friendly REST API built with **Node.js** and **Expres
   (the German values `Nicht begonnen`, `In Bearbeitung`, `Abgeschlossen` are accepted too and saved as the English value)
 - Date validation (format and real calendar date, e.g. `2025-02-30` is rejected)
 - Error handling for missing fields, unknown courses, invalid status/date, invalid JSON and file read/write errors
+- **CORS enabled** (`cors` package), so a browser dashboard can call the API
+- **Dashboard UI** (`dashboard.html`): single HTML file to add, view, edit, delete, search and filter courses
 - **Bonus:** statistics endpoint (`GET /api/courses/stats`) and search (`GET /api/courses/search?q=term`)
 - Automated tests with Node's built-in test runner (no extra packages)
 
@@ -20,6 +22,7 @@ CodeCraftHub is a beginner-friendly REST API built with **Node.js** and **Expres
 ```
 codecrafthub/
 ├── app.js          # Express application (all routes and helpers)
+├── dashboard.html  # Dashboard UI (HTML + CSS + JavaScript in one file)
 ├── test.js         # Automated API tests (npm test)
 ├── courses.json    # Data file (auto-created, ignored by git)
 ├── package.json    # Project info and dependencies
@@ -60,6 +63,17 @@ Run the automated tests:
 ```bash
 npm test
 ```
+
+## Dashboard (Part 2)
+
+`dashboard.html` is a single-page admin dashboard for the API (full CRUD, statistics, search and status filter).
+
+1. Start the backend: `npm start`
+2. Open the dashboard in one of two ways:
+   - in the browser: <http://localhost:5000/dashboard.html>, or
+   - by double-clicking `dashboard.html` (it then calls `http://localhost:5000/api/courses`; this works because CORS is enabled)
+
+Colors: primary `#8B5CF6` (purple), success `#F59E0B` (amber), delete `#EF4444` (red).
 
 ## API endpoints
 
@@ -188,6 +202,8 @@ curl "http://localhost:5000/api/courses/search?q=python"
 | `Missing required fields` | POST needs `name`, `description`, `target_date` and `status`. |
 | `Status must be one of ...` | Use exactly `Not Started`, `In Progress` or `Completed` (case-sensitive). |
 | `500 Failed to read courses` | `courses.json` contains invalid JSON. Fix it, or delete it (it will be recreated empty). |
+| Dashboard shows "Cannot reach the API" | Start the backend with `npm start` and reload the page. If your API runs on another port, change `API_BASE_URL` in `dashboard.html`. |
+| Browser console shows a CORS error | Make sure `app.use(cors())` is in `app.js` and restart the server. |
 | curl on Windows PowerShell | Use `curl.exe` and escape the quotes, or use a tool like Postman / Thunder Client. |
 
 ## License

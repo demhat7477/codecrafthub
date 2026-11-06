@@ -4,6 +4,7 @@
 // =============================================================
 
 const express = require('express');
+const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 
@@ -29,8 +30,18 @@ const STATUS_ALIASES = {
 const REQUIRED_FIELDS = ['name', 'description', 'target_date', 'status'];
 
 // ---------------- Middleware ----------------
+// CORS (Cross-Origin Resource Sharing): allows a browser page that runs
+// somewhere else (e.g. dashboard.html opened as a file, or a Bolt preview)
+// to call this API. Without it the browser blocks the requests.
+app.use(cors());
+
 // Turns the JSON body of a request into a JavaScript object (req.body).
 app.use(express.json());
+
+// Serve the dashboard: http://localhost:5000/dashboard.html
+app.get('/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
 
 // ---------------- Helper functions ----------------
 
@@ -131,6 +142,7 @@ function sendError(res, status, message) {
 app.get('/', (req, res) => {
     res.json({
         message: 'Welcome to the CodeCraftHub API',
+        dashboard: '/dashboard.html',
         endpoints: [
             'GET    /api/courses',
             'GET    /api/courses/stats',

@@ -131,3 +131,14 @@ test('corrupt courses.json gives a 500 error instead of losing data', async () =
     assert.strictEqual(r.status, 500);
     assert.strictEqual(fs.readFileSync(process.env.DATA_FILE, 'utf8'), '{ not json');
 });
+
+test('CORS header is sent so a browser dashboard can call the API', async () => {
+    const res = await fetch(base + '/api/courses', { headers: { Origin: 'http://example.com' } });
+    assert.strictEqual(res.headers.get('access-control-allow-origin'), '*');
+});
+
+test('dashboard.html is served', async () => {
+    const res = await fetch(base + '/dashboard.html');
+    assert.strictEqual(res.status, 200);
+    assert.match(await res.text(), /<title>CodeCraftHub: Your Learning Management Platform<\/title>/);
+});

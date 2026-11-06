@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeCraftHub: Your Learning Management Platform</title>
+  <style>
+    /* ---------- Design tokens ----------
+       Primary: #8B5CF6 (purple)  - main buttons, accents
+       Success: #F59E0B (amber)   - save / success actions
+       Delete:  #EF4444 (red)     - delete buttons, errors */
+    :root {
+      --primary: #8B5CF6;
+      --primary-dark: #7C3AED;
+      --primary-light: #EDE9FE;
+      --success: #F59E0B;
+      --success-dark: #D97706;
+      --danger: #EF4444;
+      --danger-dark: #DC2626;
+      --bg: #F5F3FF;
+      --card: #FFFFFF;
+      --text: #1F2937;
+      --muted: #6B7280;
+      --border: #E5E7EB;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 20px 24px;
+    }
+    header h1 { margin: 0; font-size: 1.6rem; }
+    header p { margin: 4px 0 0; opacity: 0.9; }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    section h2 { margin-top: 0; font-size: 1.2rem; }
+
+    /* ---------- Statistics ---------- */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .stat { border-radius: 10px; padding: 14px; background: var(--primary-light); }
+    .stat .value { font-size: 1.8rem; font-weight: 700; }
+    .stat .label { color: var(--muted); font-size: 0.9rem; }
+
+    /* ---------- Forms ---------- */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      font: inherit;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+    }
+    textarea { resize: vertical; min-height: 42px; }
+    .full { grid-column: 1 / -1; }
+    .form-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-primary {
+      background-color: #8B5CF6;
+      color: #FFFFFF;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background-color: #7C3AED;
+    }
+
+    .btn-success {
+      background-color: #F59E0B;
+      color: #FFFFFF;
+    }
+    .btn-success:hover:not(:disabled) {
+      background-color: #D97706;
+    }
+
+    .btn-danger {
+      background-color: #EF4444;
+      color: #FFFFFF;
+    }
+    .btn-danger:hover:not(:disabled) {
+      background-color: #DC2626;
+    }
+
+    .btn-secondary {
+      background: #FFFFFF;
+      color: var(--text);
+      border: 1px solid #D1D5DB;
+    }
+    .btn-secondary:hover { background: var(--bg); }
+    .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+
+    /* ---------- Toolbar + table ---------- */
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .toolbar input { flex: 1 1 220px; }
+    .toolbar select { flex: 0 1 200px; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; }
+    td.actions { white-space: nowrap; }
+    td.actions .btn { margin-right: 6px; }
+
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+    .badge-not-started { background: #F3F4F6; color: #374151; }
+    .badge-in-progress { background: var(--primary-light); color: var(--primary-dark); }
+    .badge-completed { background: #FEF3C7; color: #92400E; }
+
+    .empty { text-align: center; color: var(--muted); padding: 24px; }
+
+    /* ---------- Messages ---------- */
+    #message { display: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; }
+    #message.success { display: block; background: #FEF3C7; color: #92400E; border: 1px solid var(--success); }
+    #message.error { display: block; background: #FEE2E2; color: #991B1B; border: 1px solid var(--danger); }
+
+    /* ---------- Edit dialog ---------- */
+    dialog { border: none; border-radius: 12px; padding: 24px; width: min(560px, 92vw); }
+    dialog::backdrop { background: rgba(31, 41, 55, 0.5); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CodeCraftHub</h1>
+    <p>Your Learning Management Platform: track the courses you want to learn</p>
+  </header>
+
+  <main>
+    <div id="message" role="status" aria-live="polite"></div>
+
+    <!-- Statistics -->
+    <section aria-labelledby="stats-title">
+      <h2 id="stats-title">Overview</h2>
+      <div class="stats">
+        <div class="stat"><div class="value" id="stat-total">0</div><div class="label">Total Courses</div></div>
+        <div class="stat"><div class="value" id="stat-not-started">0</div><div class="label">Not Started</div></div>
+        <div class="stat"><div class="value" id="stat-in-progress">0</div><div class="label">In Progress</div></div>
+        <div class="stat"><div class="value" id="stat-completed">0</div><div class="label">Completed</div></div>
+      </div>
+    </section>
+
+    <!-- Add course form -->
+    <section aria-labelledby="add-title">
+      <h2 id="add-title">Add a New Course</h2>
+      <form id="add-form">
+        <div class="form-grid">
+          <div>
+            <label for="add-name">Course Name *</label>
+            <input id="add-name" name="name" required maxlength="200" placeholder="e.g. Python Basics">
+          </div>
+          <div>
+            <label for="add-target-date">Target Date *</label>
+            <input id="add-target-date" name="target_date" type="date" required>
+          </div>
+          <div>
+            <label for="add-status">Status *</label>
+            <select id="add-status" name="status" required>
+              <option value="Not Started">Not Started</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div class="full">
+            <label for="add-description">Description *</label>
+            <textarea id="add-description" name="description" required maxlength="1000" placeholder="What will you learn?"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="add-btn">Add Course</button>
+          <button type="reset" class="btn btn-secondary">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Course list -->
+    <section aria-labelledby="list-title">
+      <h2 id="list-title">My Courses</h2>
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="Search by name or description..." aria-label="Search courses">
+        <select id="filter-status" aria-label="Filter by status">
+          <option value="">All statuses</option>
+          <option value="Not Started">Not Started</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+        <button type="button" class="btn btn-secondary" id="refresh-btn">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Description</th><th>Target Date</th><th>Status</th><th>Created</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="course-table-body">
+            <tr><td colspan="7" class="empty">Loading courses...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Edit course dialog -->
+  <dialog id="edit-dialog" aria-labelledby="edit-title">
+    <h2 id="edit-title">Edit Course</h2>
+    <form id="edit-form">
+      <input type="hidden" id="edit-id">
+      <div class="form-grid">
+        <div class="full">
+          <label for="edit-name">Course Name *</label>
+          <input id="edit-name" required maxlength="200">
+        </div>
+        <div>
+          <label for="edit-target-date">Target Date *</label>
+          <input id="edit-target-date" type="date" required>
+        </div>
+        <div>
+          <label for="edit-status">Status *</label>
+          <select id="edit-status" required>
+            <option value="Not Started">Not Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        <div class="full">
+          <label for="edit-description">Description *</label>
+          <textarea id="edit-description" required maxlength="1000"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success" id="save-btn">Save Changes</button>
+        <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // ---------- Configuration ----------
+    // Base URL of the CodeCraftHub backend (Part 1).
+    // When the page is served by the backend itself, the same address is used;
+    // when the file is opened directly (file://), http://localhost:5000 is used.
+    const API_BASE_URL = location.protocol.startsWith('http')
+      ? location.origin + '/api/courses'
+      : 'http://localhost:5000/api/courses';
+
+    let allCourses = [];
+
+    // ---------- Helpers ----------
+    const $ = (id) => document.getElementById(id);
+
+    // Calls the API and returns the JSON body. Throws an Error with the
+    // server's error message if the request fails.
+    async function api(path = '', options = {}) {
+      let response;
+      try {
+        response = await fetch(API_BASE_URL + path, {
+          headers: { 'Content-Type': 'application/json' },
+          ...options
+        });
+      } catch (err) {
+        throw new Error('Cannot reach the API at ' + API_BASE_URL + '. Is the backend running (npm start)?');
+      }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || 'Request failed with status ' + response.status);
+      }
+      return data;
+    }
+
+    function showMessage(text, type = 'success') {
+      const box = $('message');
+      box.textContent = text;
+      box.className = type;
+      clearTimeout(showMessage.timer);
+      showMessage.timer = setTimeout(() => { box.className = ''; }, type === 'error' ? 7000 : 3500);
+    }
+
+    // Builds a table cell safely (textContent prevents HTML injection).
+    function cell(text) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      return td;
+    }
+
+    function statusBadge(status) {
+      const span = document.createElement('span');
+      span.className = 'badge badge-' + status.toLowerCase().replace(/\s+/g, '-');
+      span.textContent = status;
+      return span;
+    }
+
+    // ---------- Read (GET /api/courses) ----------
+    async function loadCourses() {
+      try {
+        const data = await api();
+        allCourses = data.courses;
+        renderCourses();
+        await loadStats();
+      } catch (err) {
+        $('course-table-body').innerHTML = '<tr><td colspan="7" class="empty">Could not load courses.</td></tr>';
+        showMessage(err.message, 'error');
+      }
+    }
+
+    // ---------- Statistics (GET /api/courses/stats) ----------
+    async function loadStats() {
+      try {
+        const { stats } = await api('/stats');
+        $('stat-total').textContent = stats.total_courses;
+        $('stat-not-started').textContent = stats.by_status['Not Started'];
+        $('stat-in-progress').textContent = stats.by_status['In Progress'];
+        $('stat-completed').textContent = stats.by_status['Completed'];
+      } catch (err) {
+        showMessage(err.message, 'error');
+      }
+    }
+
+    // Draws the table, applying the search text and status filter.
+    function renderCourses() {
+      const term = $('search').value.trim().toLowerCase();
+      const status = $('filter-status').value;
+      const tbody = $('course-table-body');
+      tbody.innerHTML = '';
+
+      const courses = allCourses.filter(c =>
+        (!status || c.status === status) &&
+        (!term || c.name.toLowerCase().includes(term) || c.description.toLowerCase().includes(term))
+      );
+
+      if (courses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">' +
+          (allCourses.length === 0 ? 'No courses yet. Add your first course above!' : 'No courses match your search.') +
+          '</td></tr>';
+        return;
+      }
+
+      courses.forEach(course => {
+        const tr = document.createElement('tr');
+        tr.append(cell(course.id), cell(course.name), cell(course.description), cell(course.target_date));
+
+        const statusTd = document.createElement('td');
+        statusTd.appendChild(statusBadge(course.status));
+        tr.appendChild(statusTd);
+        tr.appendChild(cell(course.created_at));
+
+        const actions = document.createElement('td');
+        actions.className = 'actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-primary btn-sm';
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => openEditDialog(course));
+
+        // Delete button: red (#EF4444), asks for confirmation, then calls DELETE
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-danger btn-sm';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.setAttribute('aria-label', 'Delete course ' + course.name);
+        deleteBtn.addEventListener('click', () => deleteCourse(course.id, course.name));
+
+        actions.append(editBtn, deleteBtn);
+        tr.appendChild(actions);
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ---------- Create (POST /api/courses) ----------
+    $('add-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = $('add-btn');
+      button.disabled = true;
+      try {
+        const data = await api('', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: $('add-name').value.trim(),
+            description: $('add-description').value.trim(),
+            target_date: $('add-target-date').value,
+            status: $('add-status').value
+          })
+        });
+        event.target.reset();
+        showMessage('Course "' + data.course.name + '" added successfully.');
+        await loadCourses();
+      } catch (err) {
+        showMessage(err.message, 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    // ---------- Update (PUT /api/courses/:id) ----------
+    function openEditDialog(course) {
+      $('edit-id').value = course.id;
+      $('edit-name').value = course.name;
+      $('edit-description').value = course.description;
+      $('edit-target-date').value = course.target_date;
+      $('edit-status').value = course.status;
+      $('edit-dialog').showModal();
+    }
+
+    $('cancel-btn').addEventListener('click', () => $('edit-dialog').close());
+
+    $('edit-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = $('save-btn');
+      button.disabled = true;
+      try {
+        const data = await api('/' + $('edit-id').value, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: $('edit-name').value.trim(),
+            description: $('edit-description').value.trim(),
+            target_date: $('edit-target-date').value,
+            status: $('edit-status').value
+          })
+        });
+        $('edit-dialog').close();
+        showMessage('Course "' + data.course.name + '" updated successfully.');
+        await loadCourses();
+      } catch (err) {
+        showMessage(err.message, 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    // ---------- Delete (DELETE /api/courses/:id) ----------
+    async function deleteCourse(id, name) {
+      if (!confirm('Are you sure you want to delete "' + name + '"?')) return;
+      try {
+        await api('/' + id, { method: 'DELETE' });
+        showMessage('Course "' + name + '" deleted successfully.');
+        await loadCourses();
+      } catch (err) {
+        showMessage(err.message, 'error');
+      }
+    }
+
+    // ---------- Search / filter / refresh ----------
+    $('search').addEventListener('input', renderCourses);
+    $('filter-status').addEventListener('change', renderCourses);
+    $('refresh-btn').addEventListener('click', loadCourses);
+
+    // Load the courses when the page opens.
+    loadCourses();
+  </script>
+</body>
+</html>

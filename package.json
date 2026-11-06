@@ -7,9 +7,15 @@
     "start": "node app.js",
     "test": "node test.js"
   },
-  "keywords": ["express", "rest-api", "learning", "json"],
+  "keywords": [
+    "express",
+    "rest-api",
+    "learning",
+    "json"
+  ],
   "license": "Apache-2.0",
   "dependencies": {
+    "cors": "^2.8.6",
     "express": "^4.21.2"
   }
 }
